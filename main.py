@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
         if len(differences) != 0 :
             print("#########################################################################################################")
-            print("FOUND NEW GRADES. WILL SEND MAIL. WILL WAIT FOR {minutes_to_wait} MINUTES.")
+            print(f"FOUND NEW GRADES. WILL SEND MAIL. WILL WAIT FOR {minutes_to_wait} MINUTES.")
             o.send_mail(differences, personal_data)
         else:
             print("#########################################################################################################")
