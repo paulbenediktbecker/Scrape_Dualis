@@ -2,6 +2,10 @@
 
 This is a webscraper for students of the DHBW.
 
-You can scrape your grades and save them as a png and pdf.
+Script based on the work of: [Scrape_Dualis](https://github.com/F-Wer/Scrape_Dualis)
 
-To use this you have to adjust the browser location and the browserdriver.
+This script will scrape your grades of Dualis and send you a mail, once a change is detected. 
+
+Args: 
+  
+    index of secret.json file -> for having different scripts running simultanously 
