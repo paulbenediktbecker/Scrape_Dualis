@@ -40,7 +40,9 @@ There has to be a file called secret.json :
 
 # Scraping the current grades for the DHBW Ravensburg
 class scrape_Grades():
-    def Scrape(self, personal_data):
+    def Scrape(self, personal_data, counter):
+        seconds_to_sleep = 10
+
         username = personal_data["username"]
         password = personal_data["password"]
 
@@ -57,40 +59,45 @@ class scrape_Grades():
         print('Open Chrome')
         driver.get(
             "https://dualis.dhbw.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000324,-Awelcome")
-        driver.find_element_by_xpath('//*[@id="field_user"]').send_keys(username)
-        time.sleep(2)
-        driver.find_element_by_xpath('//*[@id="field_pass"]').send_keys(password)
-        driver.find_element_by_xpath('//*[@id="logIn_btn"]').click()
-        print('Logged in')
-        time.sleep(2)
-        #driver.find_element_by_xpath('//*[@id="link000310"]/a').click()
-        driver.find_element_by_xpath('//*[@id="link000307"]/a').click()
-        time.sleep(2)
-        Noten = driver.find_element_by_xpath('//*[@id="contentSpacer_IE"]/div').text
+        time.sleep(seconds_to_sleep)
+        try:
+            driver.find_element_by_xpath('//*[@id="field_user"]').send_keys(username)
+            driver.find_element_by_xpath('//*[@id="field_pass"]').send_keys(password)
+            driver.find_element_by_xpath('//*[@id="logIn_btn"]').click()
+            print('Logged in')
+            time.sleep(seconds_to_sleep)
+            #driver.find_element_by_xpath('//*[@id="link000310"]/a').click()
+            driver.find_element_by_xpath('//*[@id="link000307"]/a').click()
+            time.sleep(seconds_to_sleep)
+            Noten = driver.find_element_by_xpath('//*[@id="contentSpacer_IE"]/div').text
 
 
-        ##### start my part
-        all_noten = []
-        select = Select(driver.find_element_by_id("semester"))
-        options = select.options
+            ##### start my part
+            all_noten = []
+            select = Select(driver.find_element_by_id("semester"))
+            options = select.options
+        except NoSuchElementException:
+            driver.save_screenshot(f"NoSuchElement_{counter}.png")
+            
         for index in range(0, len(options) - 1):
             print(f"SCRAPING SEMESTER {index}")
             select = Select(driver.find_element_by_id("semester"))
             options = select.options
             select.select_by_index(index)
-            time.sleep(2)
+            time.sleep(seconds_to_sleep)
             # do stuff
 
             new_noten = []
             for count, link in enumerate(driver.find_elements_by_tag_name("tr")):
                 try:
                     current_link = link.find_element_by_xpath(f'//*[@id="Popup_details000{count + 1}"]')
+                    time.sleep(seconds_to_sleep)
                 except NoSuchElementException: 
                     break 
             
                 old_window = driver.current_window_handle
                 current_link = current_link.click()
-                time.sleep(2)
+                time.sleep(seconds_to_sleep)
                 # changing the handles to access login page
                 for handle in driver.window_handles:
                     if handle != old_window:
@@ -98,6 +105,7 @@ class scrape_Grades():
                         
                 # change the control to signin page       
                 driver.switch_to.window(login_page)
+                time.sleep(seconds_to_sleep)
 
                 
 
@@ -107,7 +115,7 @@ class scrape_Grades():
 
                 new_noten.append(noten_ret)
                 driver.close()
-                time.sleep(2)
+                time.sleep(seconds_to_sleep)
                 driver.switch_to.window(old_window)
             all_noten.append(new_noten)
 
@@ -123,7 +131,7 @@ class scrape_Grades():
     
     def send_mail(self, diffs, personal_data):
         passwort_g = personal_data["passwort_g"]
-        recipent = personal_data["recipent"]
+        recipent = personal_data["recipent"][0]
         sender_email = personal_data["sender_email"]
       
 
@@ -168,15 +176,19 @@ if __name__ == "__main__":
 
     o = scrape_Grades()
     personal_data = o.parse_json(secrect_index)
-    scrape_base = o.Scrape(personal_data)
+    scrape_base = o.Scrape(personal_data,0)
     print("SCRAPED FIRST")
     minutes_to_wait = 30
-    seconds_to_wait = 60 * minutes_to_wait
-    
+    #seconds_to_wait = 60 * minutes_to_wait
+    seconds_to_wait = 5
+    counter = 1
     while True:
-        print("SCRAPING NEW ENTRY")
+        print(f"SCRAPING NEW ENTRY: {counter}")
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print(current_time)
         print("#########################################################################################################")
-        scrape_new = o.Scrape(personal_data)
+        scrape_new = o.Scrape(personal_data,counter)
 
         differences = []
 
@@ -197,4 +209,5 @@ if __name__ == "__main__":
     
 
         time.sleep(seconds_to_wait)
+        counter +=1
         
